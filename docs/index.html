@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banxico al día</title>
+<meta name="description" content="Tipo de cambio, divisas, tasas de interés, CETES, inflación, UDIS y reservas internacionales del Banco de México, actualizados cada día hábil.">
+<style>
+  :root {
+    color-scheme: light;
+    --page: #ffffff;
+    --surface-1: #ffffff;
+    --surface-2: #f5f5f3;
+    --text-primary: #111111;
+    --text-secondary: #5b5b58;
+    --text-muted: #9a9993;
+    --grid: #ededea;
+    --axis: #d6d5cf;
+    --border: rgba(17, 17, 17, 0.12);
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --deemph: #bdbcb5;
+    --banda: rgba(17, 17, 17, 0.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #111111;
+      --surface-1: #111111;
+      --surface-2: #1c1c1b;
+      --text-primary: #f2f2f0;
+      --text-secondary: #b9b8b2;
+      --text-muted: #7f7e78;
+      --grid: #232322;
+      --axis: #3a3a38;
+      --border: rgba(255, 255, 255, 0.14);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --deemph: #5d5c57;
+      --banda: rgba(255, 255, 255, 0.05);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #111111;
+    --surface-1: #111111;
+    --surface-2: #1c1c1b;
+    --text-primary: #f2f2f0;
+    --text-secondary: #b9b8b2;
+    --text-muted: #7f7e78;
+    --grid: #232322;
+    --axis: #3a3a38;
+    --border: rgba(255, 255, 255, 0.14);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --deemph: #5d5c57;
+    --banda: rgba(255, 255, 255, 0.05);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--text-primary);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 56px 20px 80px; }
+  h1, h2, h3, p { margin: 0; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-color: var(--axis); }
+  a:hover { text-decoration-color: currentColor; }
+  button { font: inherit; }
+  :focus-visible { outline: 2px solid var(--series-1); outline-offset: 3px; border-radius: 2px; }
+  .muted { color: var(--text-muted); font-size: 13px; }
+
+  /* Encabezado */
+  .cabecera { display: flex; justify-content: space-between; align-items: baseline; gap: 12px 24px; flex-wrap: wrap; }
+  .cabecera h1 { font-size: 15px; font-weight: 650; letter-spacing: -0.005em; }
+  .cabecera p { margin-top: 2px; }
+
+  /* Controles de texto: el activo va subrayado */
+  .opciones { display: flex; gap: 18px; flex-wrap: wrap; }
+  .opciones button {
+    border: 0; background: none; padding: 2px 0; cursor: pointer; color: var(--text-muted);
+    font-size: 13.5px; border-bottom: 1.5px solid transparent; transition: color .12s, border-color .12s;
+  }
+  .opciones button:hover { color: var(--text-primary); }
+  .opciones button[aria-pressed="true"] { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+  .monedas button { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+  /* Secciones */
+  section { margin-top: 64px; }
+  section > h2 {
+    font-size: 13px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.02em;
+    padding-bottom: 12px; border-bottom: 1px solid var(--grid); margin-bottom: 28px;
+  }
+  .titulo-seccion { display: flex; justify-content: space-between; align-items: baseline; gap: 12px 24px; flex-wrap: wrap;
+    padding-bottom: 10px; border-bottom: 1px solid var(--grid); margin-bottom: 28px; }
+  .titulo-seccion h2 { font-size: 13px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.02em; }
+  .encabeza { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 24px; flex-wrap: wrap; margin-bottom: 28px; }
+
+  /* Cifra principal */
+  .principal .label { font-size: 13.5px; color: var(--text-secondary); }
+  .principal .valor { font-size: 64px; font-weight: 600; line-height: 1; letter-spacing: -0.035em; margin: 10px 0 12px; }
+  .principal .delta { font-size: 13.5px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .principal .delta b { color: var(--text-primary); font-weight: 600; }
+  .principal .extra { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  #fix-valor small { font-size: 15px; font-weight: 400; color: var(--text-muted); letter-spacing: 0; margin-left: 10px; }
+
+  /* Explicación fija y lectura calculada con los datos del día */
+  .explica { font-size: 14px; color: var(--text-secondary); max-width: 64ch; margin: -14px 0 28px; }
+  .lectura { font-size: 15px; line-height: 1.65; max-width: 64ch; margin: 22px 0 32px; padding-left: 14px; border-left: 2px solid var(--series-1); }
+  .lectura .etq { display: block; font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+  figure .lectura { margin: 14px 0 6px; font-size: 14px; }
+
+  /* Cifras en fila, sin cajas */
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-bottom: 36px; }
+  .stat .label { font-size: 13px; color: var(--text-secondary); }
+  .stat .valor { font-size: 30px; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; margin: 4px 0 2px; }
+  .stat .delta { font-size: 12.5px; color: var(--text-muted); }
+
+  /* Gráficas */
+  figure { margin: 0; }
+  .titulo-graf { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 2px; }
+  .titulo-graf h3 { font-size: 14px; font-weight: 600; }
+  .nota { margin-bottom: 6px; }
+  .plot { position: relative; }
+  .plot svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+  .leyenda { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin: 8px 0 0; }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .key { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
+  .bloque + .bloque { margin-top: 44px; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 2; min-width: 140px;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 10px; font-size: 12.5px; color: var(--text-primary);
+  }
+  .tooltip .fecha { color: var(--text-muted); margin-bottom: 3px; }
+  .tooltip .fila { display: flex; align-items: center; gap: 8px; }
+  .tooltip .fila b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tooltip .fila span:last-child { color: var(--text-secondary); }
+
+  /* Listas: nombre a la izquierda, cifras a la derecha */
+  .lista { margin-top: 32px; }
+  .lista .encabezado, .lista .fila { display: grid; grid-template-columns: minmax(0, 1fr) 110px 100px; gap: 16px; align-items: baseline; }
+  .lista .encabezado { font-size: 12px; color: var(--text-muted); padding-bottom: 8px; border-bottom: 1px solid var(--grid); }
+  .lista .encabezado span:nth-child(2) { display: none; }
+  .lista .encabezado span:nth-child(n+3) { text-align: right; }
+  .lista .fila { padding: 11px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+  .lista .spark { display: none; }
+  .lista .nombre { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lista .valor { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .lista .cambio { text-align: right; font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* "Ver como tabla" como enlace discreto */
+  details { margin-top: 10px; }
+  summary { list-style: none; cursor: pointer; display: inline-block; font-size: 12.5px; color: var(--text-muted); }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { color: var(--text-primary); }
+  details[open] summary { color: var(--text-primary); }
+  .tabla-wrap { max-height: 260px; overflow: auto; margin-top: 10px; border-top: 1px solid var(--grid); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { position: sticky; top: 0; background: var(--page); color: var(--text-muted); font-weight: 500; }
+
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--grid); display: grid; gap: 12px; font-size: 13px; color: var(--text-muted); }
+  .descargas { display: flex; gap: 6px 16px; flex-wrap: wrap; }
+  .descargas a { color: var(--text-secondary); }
+
+  @media (max-width: 600px) {
+    main { padding: 32px 16px 56px; }
+    section { margin-top: 48px; }
+    .principal .valor { font-size: 48px; }
+    .stats { gap: 12px; }
+    .stat .valor { font-size: 22px; }
+    .opciones { gap: 14px; }
+    .lista .encabezado, .lista .fila { grid-template-columns: minmax(0, 1fr) 76px 96px; gap: 10px; }
+    .lista .encabezado span { white-space: nowrap; }
+    .lista .fila { font-size: 13.5px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="cabecera">
+    <div>
+      <h1>Banxico al día</h1>
+      <p class="muted" id="actualizado">Indicadores oficiales del Banco de México</p>
+    </div>
+    <div class="opciones segmentado" role="group" aria-label="Rango de las gráficas">
+      <button data-dias="30" aria-pressed="false">30 días</button>
+      <button data-dias="90" aria-pressed="false">90 días</button>
+      <button data-dias="365" aria-pressed="true">1 año</button>
+      <button data-dias="0" aria-pressed="false">Todo</button>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-cambio">
+    <div class="titulo-seccion">
+      <h2 id="h-cambio">Tipo de cambio</h2>
+      <div class="opciones monedas" id="monedas" role="group" aria-label="Moneda"></div>
+    </div>
+    <p class="explica">Cuántos pesos cuesta una moneda extranjera. El FIX lo determina Banxico cada día hábil con operaciones reales del mercado y es la referencia oficial, por ejemplo, para pagar en México deudas en dólares. Lo que cobra un banco o una casa de cambio puede ser distinto.</p>
+    <div class="encabeza">
+      <div class="principal">
+        <p class="label" id="mon-label">Dólar · tipo de cambio FIX</p>
+        <p class="valor" id="fix-valor">—</p>
+        <p class="delta" id="fix-delta"></p>
+        <p class="extra" id="fix-liq"></p>
+        <p class="lectura" id="lec-cambio"></p>
+      </div>
+    </div>
+    <figure>
+      <div class="plot" id="g-fix"></div>
+      <details><summary>Ver como tabla</summary><div class="tabla-wrap" id="t-fix"></div></details>
+    </figure>
+  </section>
+
+  <section aria-labelledby="h-tasas">
+    <h2 id="h-tasas">Tasas de interés</h2>
+    <p class="explica">El precio del dinero. La <b>tasa objetivo</b> la fija Banxico y de ella dependen los intereses de créditos y ahorros. La <b>TIIE</b> es la tasa a la que se prestan los bancos entre sí, y los <b>CETES</b> son lo que paga el gobierno cuando le prestas tu dinero.</p>
+    <div class="stats" id="stats-tasas"></div>
+    <p class="lectura" id="lec-tasas"></p>
+    <figure class="bloque">
+      <div class="titulo-graf"><h3>Curva de rendimientos de CETES</h3><span class="muted">hoy y hace un año, %</span></div>
+      <p class="lectura" id="lec-curva"></p>
+      <div class="leyenda" id="l-curva"></div>
+      <div class="plot" id="g-curva"></div>
+      <details><summary>Ver como tabla</summary><div class="tabla-wrap" id="t-curva"></div></details>
+    </figure>
+    <div class="lista" id="lista-tasas"></div>
+  </section>
+
+  <section aria-labelledby="h-inflacion">
+    <h2 id="h-inflacion">Inflación <span id="inf-mes"></span></h2>
+    <p class="explica">Cuánto suben los precios. La <b>subyacente</b> deja fuera los que más brincan (agropecuarios, energéticos y tarifas del gobierno) y muestra la tendencia de fondo. Banxico busca que la inflación anual esté en 3&nbsp;%, con margen de 2 a 4&nbsp;%. La <b>UDI</b> es una unidad que sube con la inflación y se usa en créditos e inversiones para que no pierdan valor.</p>
+    <div class="stats" id="stats-inflacion"></div>
+    <p class="lectura" id="lec-inflacion"></p>
+    <figure class="bloque">
+      <div class="titulo-graf"><h3>Inflación anual por componente</h3><span class="muted">la franja es la meta: 3 % ± 1</span></div>
+      <div class="leyenda" id="l-inflacion"></div>
+      <div class="plot" id="g-inflacion"></div>
+      <details><summary>Ver como tabla</summary><div class="tabla-wrap" id="t-inflacion"></div></details>
+    </figure>
+    <figure class="bloque">
+      <div class="titulo-graf"><h3>Tasa objetivo contra inflación</h3><span class="muted">la distancia es la tasa real</span></div>
+      <div class="leyenda" id="l-tasas"></div>
+      <div class="plot" id="g-tasas"></div>
+      <details><summary>Ver como tabla</summary><div class="tabla-wrap" id="t-tasas"></div></details>
+    </figure>
+    <div class="lista" id="lista-precios"></div>
+  </section>
+
+  <section aria-labelledby="h-reservas">
+    <h2 id="h-reservas">Reservas internacionales</h2>
+    <p class="explica">Los dólares y otros activos en moneda extranjera que guarda Banxico para respaldar al peso y enfrentar emergencias.</p>
+    <div class="principal" style="margin-bottom:24px">
+      <p class="valor" id="res-valor" style="font-size:40px;margin-top:0">—</p>
+      <p class="delta" id="res-delta"></p>
+      <p class="lectura" id="lec-reservas"></p>
+    </div>
+    <figure>
+      <div class="plot" id="g-reservas"></div>
+      <details><summary>Ver como tabla</summary><div class="tabla-wrap" id="t-reservas"></div></details>
+    </figure>
+  </section>
+
+  <footer>
+    <p>Descargar CSV (histórico desde enero de 2024):</p>
+    <div class="descargas" id="descargas"></div>
+    <p>Fuente: Banco de México, Sistema de Información Económica (SIE). Proyecto independiente, no afiliado ni respaldado por el Banco de México. Hecho por <a href="https://inakisobera.me">Iñaki Sobera</a> con <a href="https://github.com/nanisadw3/mcp-banxico">mcp-banxico</a>.</p>
+  </footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const css = (v, e) => getComputedStyle(e || document.documentElement).getPropertyValue(v).trim();
+  const fNum = (v, d) => new Intl.NumberFormat("es-MX", { minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
+  const fFecha = (iso, opts) => new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", ...opts }).format(new Date(iso + "T00:00:00Z"));
+  const fCorta = (iso) => fFecha(iso, { day: "numeric", month: "short", year: "numeric" });
+  const fMes = (iso) => fFecha(iso, { month: "long", year: "numeric" });
+  const DIA = 86400000;
+  const t = (iso) => Date.parse(iso + "T00:00:00Z");
+
+  function el(tag, attrs = {}, padre) {
+    const n = tag.startsWith("svg:") ? document.createElementNS(NS, tag.slice(4)) : document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+    }
+    if (padre) padre.appendChild(n);
+    return n;
+  }
+
+  // Último dato con fecha <= ms.
+  function valorEn(datos, ms) {
+    let lo = 0, hi = datos.length - 1, res = null;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (t(datos[mid][0]) <= ms) { res = datos[mid]; lo = mid + 1; } else hi = mid - 1;
+    }
+    return res;
+  }
+
+  function signo(v, d, sufijo = "") {
+    const s = v > 0 ? "▲ +" : v < 0 ? "▼ −" : "= ";
+    return s + fNum(Math.abs(v), d) + sufijo;
+  }
+
+  // Un punto por mes (el último dato de cada mes).
+  function mensual(datos) {
+    const porMes = new Map();
+    for (const p of datos) porMes.set(p[0].slice(0, 7), p);
+    return [...porMes.values()];
+  }
+
+  // ---------- Piezas de los paneles ----------
+  // Mini-tendencia de 12 meses. La línea se estira con su celda; el punto final es un
+  // elemento aparte para que siga redondo.
+  function sparkline(cont, datos) {
+    const pts = mensual(datos).slice(-12);
+    if (pts.length < 2) return;
+    const W = 100, H = 22, P = 4;
+    const vs = pts.map((p) => p[1]);
+    const min = Math.min(...vs), max = Math.max(...vs), rango = max - min || 1;
+    const x = (i) => P + (i * (W - 2 * P)) / (pts.length - 1);
+    const y = (v) => H - P - ((v - min) / rango) * (H - 2 * P);
+    const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "none", "aria-hidden": "true" }, cont);
+    el("svg:path", {
+      d: pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(""),
+      fill: "none", stroke: css("--deemph", cont), "stroke-width": 1.75, "stroke-linejoin": "round", "stroke-linecap": "round",
+      "vector-effect": "non-scaling-stroke",
+    }, svg);
+    const u = pts.length - 1;
+    el("span", { class: "punto", style: `left:${(x(u) / W) * 100}%;top:${y(pts[u][1])}px` }, cont);
+  }
+
+  // Lista compacta: nombre · tendencia · valor · cambio. El encabezado nombra el periodo del cambio.
+  function lista(id, periodo, filas) {
+    const cont = document.getElementById(id);
+    cont.textContent = "";
+    const enc = el("div", { class: "encabezado", "aria-hidden": "true" }, cont);
+    ["", "12 meses", "Valor", periodo].forEach((t) => el("span", { text: t }, enc));
+    filas.forEach((f) => {
+      const fila = el("div", { class: "fila" }, cont);
+      el("span", { class: "nombre", text: f.nombre, title: f.nombre }, fila);
+      sparkline(el("div", { class: "spark" }, fila), f.datos);
+      el("span", { class: "valor", text: f.valor }, fila);
+      const c = el("span", { class: "cambio", text: f.cambio }, fila);
+      if (f.titulo) c.title = f.titulo;
+    });
+  }
+
+  function stat(cont, { label, valor, delta, titulo }) {
+    const b = el("div", { class: "stat" }, cont);
+    const l = el("p", { class: "label", text: label }, b);
+    if (titulo) l.title = titulo;
+    el("p", { class: "valor", text: valor }, b);
+    el("p", { class: "delta", text: delta }, b);
+  }
+
+  const cambio = (a, b, d, suf = "") => signo(a - b, d, suf);
+
+  // Tasa real ex post: tasa objetivo al cierre de cada mes menos la inflación anual de ese mes.
+  function tasaReal(S) {
+    return S.inflacion_anual.datos.map(([f, inf]) => {
+      const finMes = new Date(t(f)); finMes.setUTCMonth(finMes.getUTCMonth() + 1); finMes.setUTCDate(0);
+      const obj = valorEn(S.tasa_objetivo.datos, finMes.getTime());
+      return obj ? [f, +(obj[1] - inf).toFixed(2)] : null;
+    }).filter(Boolean);
+  }
+
+  // ---------- Monedas ----------
+  const MONEDAS = [
+    { clave: "tipo_cambio_fix", codigo: "USD", art: "el dólar", nombre: "Dólar", etiqueta: "Dólar · tipo de cambio FIX", unidad: "pesos por dólar" },
+    { clave: "euro", codigo: "EUR", art: "el euro", nombre: "Euro", etiqueta: "Euro", unidad: "pesos por euro" },
+    { clave: "libra", codigo: "GBP", art: "la libra esterlina", nombre: "Libra", etiqueta: "Libra esterlina", unidad: "pesos por libra" },
+    { clave: "dolar_canadiense", codigo: "CAD", art: "el dólar canadiense", nombre: "Dólar canadiense", etiqueta: "Dólar canadiense", unidad: "pesos por dólar canadiense" },
+    { clave: "yen", codigo: "JPY", art: "el yen", nombre: "Yen", etiqueta: "Yen japonés", unidad: "pesos por yen" },
+  ];
+  // La moneda elegida vive en la dirección (#euro, #yen...) para poder compartir el enlace.
+  const desdeDireccion = location.hash.slice(1);
+  let moneda = MONEDAS.some((m) => m.clave === desdeDireccion) ? desdeDireccion : "tipo_cambio_fix";
+
+  function pintarMoneda(S) {
+    const m = MONEDAS.find((x) => x.clave === moneda);
+    const s = S[m.clave], d = s.decimales;
+    const [fHoy, vHoy] = s.datos.at(-1), [fAnt, vAnt] = s.datos.at(-2);
+    document.getElementById("mon-label").textContent = m.etiqueta;
+    const fv = document.getElementById("fix-valor");
+    fv.textContent = fNum(vHoy, d);
+    el("small", { text: m.unidad }, fv);
+    const fd = document.getElementById("fix-delta");
+    fd.textContent = "";
+    el("b", { text: cambio(vHoy, vAnt, d) }, fd);
+    fd.append(` (${signo(((vHoy - vAnt) / vAnt) * 100, 2, " %").replace(/^[▲▼=] /, "")}) vs ${fCorta(fAnt)}`);
+    const extra = document.getElementById("fix-liq");
+    if (m.clave === "tipo_cambio_fix") {
+      const liq = S.tipo_cambio_liquidacion.datos.at(-1);
+      extra.textContent = `Publicado el ${fCorta(fHoy)}. Para pagos del ${fCorta(liq[0])} (DOF): ${fNum(liq[1], 4)}.`;
+    } else {
+      extra.textContent = `Cotización de Banxico del ${fCorta(fHoy)}.`;
+    }
+
+    lecturaMoneda(S, m);
+
+    const cont = document.getElementById("monedas");
+    cont.textContent = "";
+    MONEDAS.forEach((x) => {
+      const sx = S[x.clave], [, v1] = sx.datos.at(-1), [, v0] = sx.datos.at(-2);
+      const b = el("button", { class: "moneda", type: "button", "aria-pressed": String(x.clave === moneda), "aria-label": `${x.etiqueta}: ${fNum(v1, sx.decimales)} ${x.unidad}` }, cont);
+      b.textContent = x.codigo;
+      b.title = `${x.etiqueta}: ${fNum(v1, sx.decimales)} (${cambio(v1, v0, sx.decimales)})`;
+      b.addEventListener("click", () => {
+        if (moneda === x.clave) return;
+        moneda = x.clave;
+        history.replaceState(null, "", x.clave === "tipo_cambio_fix" ? location.pathname + location.search : "#" + x.clave);
+        pintarMoneda(S);
+        pintarGraficaMoneda();
+        document.querySelector('#monedas [aria-pressed="true"]')?.focus({ preventScroll: true });
+      });
+    });
+  }
+
+  // ---------- Resumen del día ----------
+  function pintarResumen(S) {
+    const cont = document.getElementById("resumen");
+    if (!cont) return;
+    cont.textContent = "";
+    const item = (k, n, unidad, d) => {
+      const b = el("div", { class: "item" }, cont);
+      el("p", { class: "k", text: k }, b);
+      const v = el("p", { class: "n", text: n }, b);
+      if (unidad) el("small", { text: unidad }, v);
+      el("p", { class: "d", text: d }, b);
+    };
+    const obj = S.tasa_objetivo.datos, ia = S.inflacion_anual.datos, c28 = S.cetes_28.datos;
+    const t28 = S.tiie_28.datos, res = S.reservas.datos;
+    const real = tasaReal(S);
+    item("Tasa objetivo", fNum(obj.at(-1)[1], 2), "%", "Banxico");
+    item("Inflación anual", fNum(ia.at(-1)[1], 2), "%", fMes(ia.at(-1)[0]));
+    item("Tasa real", fNum(real.at(-1)[1], 2), "pp", "objetivo − inflación");
+    item("CETES 28 días", fNum(c28.at(-1)[1], 2), "%", `subasta del ${fCorta(c28.at(-1)[0])}`);
+    item("TIIE 28 días", fNum(t28.at(-1)[1], 4), "%", fCorta(t28.at(-1)[0]));
+    item("Reservas", fNum(res.at(-1)[1] / 1000, 1), "mmdd", `al ${fCorta(res.at(-1)[0])}`);
+  }
+
+  // ---------- Lecturas del día ----------
+  // Frases armadas con reglas fijas sobre los datos: describen, no explican causas.
+  const fLarga = (iso) => fFecha(iso, { day: "numeric", month: "long", year: "numeric" });
+  const plural = (n, uno, varios) => `${n} ${Math.abs(n) === 1 ? uno : varios}`;
+  function ponerLectura(id, frases) {
+    const p = document.getElementById(id);
+    if (!p) return;
+    p.textContent = "";
+    el("span", { class: "etq", text: "Lectura de hoy" }, p);
+    p.append(frases.filter(Boolean).join(" "));
+  }
+  // Desde cuándo no se veía un valor así de alto (o de bajo). null si no es un extremo de al menos 20 datos.
+  function extremo(datos) {
+    const [, v] = datos.at(-1);
+    let i = datos.length - 2;
+    const esMax = datos[i] && datos[i][1] < v;
+    if (!esMax && !(datos[i] && datos[i][1] > v)) return null;
+    while (i >= 0 && (esMax ? datos[i][1] <= v : datos[i][1] >= v)) i--;
+    const tramo = datos.length - 2 - i;
+    if (tramo < 20) return null;
+    return { tipo: esMax ? "alto" : "bajo", desde: i >= 0 ? datos[i][0] : null };
+  }
+
+  function lecturaMoneda(S, m) {
+    const d = S[m.clave].datos;
+    const [f1, v1] = d.at(-1), [, v0] = d.at(-2);
+    const yen = m.clave === "yen";
+    const precio = yen ? fNum(v1, 4) : fNum(v1, 2);
+    let dia;
+    if (yen) {
+      const dif = v1 - v0;
+      dia = Math.abs(dif) < 0.00005 ? "prácticamente igual que el día hábil anterior"
+        : `${fNum(Math.abs(dif), 4)} pesos ${dif > 0 ? "más" : "menos"} que el día hábil anterior`;
+    } else {
+      const c = Math.round(Math.abs(v1 - v0) * 100);
+      dia = c === 0 ? "prácticamente igual que el día hábil anterior"
+        : `${plural(c, "centavo", "centavos")} ${v1 > v0 ? "más" : "menos"} que el día hábil anterior`;
+    }
+    const frases = [`El ${fLarga(f1)}, ${m.art} costaba ${precio} pesos, ${dia}.`];
+    const ex = extremo(d);
+    if (ex) frases.push(ex.desde ? `Es su nivel más ${ex.tipo} desde el ${fLarga(ex.desde)}.` : `Es su nivel más ${ex.tipo} desde enero de 2024, el inicio de estos datos.`);
+    const mes = valorEn(d, t(f1) - 30 * DIA);
+    if (mes) {
+      const pct = ((v1 - mes[1]) / mes[1]) * 100;
+      frases.push(Math.abs(pct) < 0.05 ? "En el último mes casi no se ha movido."
+        : `En el último mes ${pct > 0 ? "subió" : "bajó"} ${fNum(Math.abs(pct), 1)}\u00a0%${pct > 0 ? ", así que el peso perdió valor frente a esa moneda" : ", así que el peso ganó valor frente a esa moneda"}.`);
+    }
+    ponerLectura("lec-cambio", frases);
+  }
+
+  function lecturaTasas(S) {
+    const obj = S.tasa_objetivo.datos, ia = S.inflacion_anual.datos, c28 = S.cetes_28.datos;
+    let i = obj.length - 1;
+    while (i > 0 && obj[i - 1][1] === obj.at(-1)[1]) i--;
+    const tasa = obj.at(-1)[1];
+    const frases = [];
+    if (i > 0) {
+      const dif = tasa - obj[i - 1][1];
+      frases.push(`Banxico tiene su tasa objetivo en ${fNum(tasa, 2)}\u00a0% desde el ${fLarga(obj[i][0])}, cuando la ${dif < 0 ? "bajó" : "subió"} ${fNum(Math.abs(dif), 2)} puntos.`);
+    } else {
+      frases.push(`Banxico tiene su tasa objetivo en ${fNum(tasa, 2)}\u00a0%.`);
+    }
+    const real = tasa - ia.at(-1)[1];
+    frases.push(`Con una inflación anual de ${fNum(ia.at(-1)[1], 2)}\u00a0%, la tasa real queda en ${fNum(real, 2)} puntos: ${real > 0 ? "lo que paga esa tasa está por arriba de lo que suben los precios" : "los precios suben más rápido de lo que paga esa tasa"}.`);
+    frases.push(`En la subasta del ${fLarga(c28.at(-1)[0])}, los CETES a 28 días pagaron ${fNum(c28.at(-1)[1], 2)}\u00a0% anual.`);
+    ponerLectura("lec-tasas", frases);
+  }
+
+  function lecturaCurva(S) {
+    const c28 = S.cetes_28.datos, c364 = S.cetes_364.datos;
+    const h28 = c28.at(-1)[1], h364 = c364.at(-1)[1];
+    const a28 = valorEn(c28, t(c28.at(-1)[0]) - 365 * DIA);
+    const dif = h364 - h28;
+    const frases = [dif >= 0
+      ? `Prestarle al gobierno a un año paga ${fNum(dif, 2)} puntos más que a 28 días.`
+      : `Hoy prestarle al gobierno a 28 días paga ${fNum(-dif, 2)} puntos más que a un año, algo poco común.`];
+    if (a28) frases.push(`Hace un año los CETES a 28 días pagaban ${fNum(a28[1], 2)}\u00a0%; hoy pagan ${fNum(Math.abs(h28 - a28[1]), 2)} puntos ${h28 < a28[1] ? "menos" : "más"}.`);
+    ponerLectura("lec-curva", frases);
+  }
+
+  function lecturaInflacion(S) {
+    const ia = S.inflacion_anual.datos, sub = S.inflacion_subyacente.datos, im = S.inflacion_mensual.datos;
+    const [f, v] = ia.at(-1), [, vAnt] = ia.at(-2);
+    const mes = fFecha(f, { month: "long" });
+    const comparado = Math.abs(v - vAnt) < 0.005 ? `igual que el mes anterior` : `${v > vAnt ? "más" : "menos"} que el mes anterior (${fNum(vAnt, 2)}\u00a0%)`;
+    const meta = v < 2 ? "por debajo del rango meta de Banxico (2\u00a0% a 4\u00a0%)" : v > 4 ? "por arriba del rango meta de Banxico (2\u00a0% a 4\u00a0%)" : "dentro del rango meta de Banxico (2\u00a0% a 4\u00a0%)";
+    const frases = [`En ${mes} los precios subieron ${fNum(v, 2)}\u00a0% respecto a un año antes, ${comparado}. Está ${meta}.`];
+    let racha = 0;
+    for (let i = sub.length - 1; i > 0 && sub[i][1] < sub[i - 1][1]; i--) racha++;
+    let rachaSube = 0;
+    for (let i = sub.length - 1; i > 0 && sub[i][1] > sub[i - 1][1]; i--) rachaSube++;
+    const tendencia = racha >= 2 ? `, y lleva ${racha} meses seguidos bajando` : rachaSube >= 2 ? `, y lleva ${rachaSube} meses seguidos subiendo` : "";
+    frases.push(`La subyacente, que muestra la tendencia de fondo, quedó en ${fNum(sub.at(-1)[1], 2)}\u00a0%${tendencia}.`);
+    frases.push(`Solo en ${mes}, los precios subieron ${fNum(im.at(-1)[1], 2)}\u00a0%.`);
+    ponerLectura("lec-inflacion", frases);
+  }
+
+  function lecturaReservas(S) {
+    const r = S.reservas.datos;
+    const [f, v] = r.at(-1), [, vAnt] = r.at(-2);
+    const sem = (v - vAnt) / 1000;
+    const frases = [`Al ${fLarga(f)}, Banxico tenía ${fNum(v / 1000, 1)} mil millones de dólares en reservas, ${Math.abs(sem) < 0.05 ? "casi lo mismo que la semana anterior" : `${fNum(Math.abs(sem), 1)} mil millones ${sem > 0 ? "más" : "menos"} que la semana anterior`}.`];
+    const anio = valorEn(r, t(f) - 365 * DIA);
+    if (anio) {
+      const d = (v - anio[1]) / 1000;
+      frases.push(`En un año ${d >= 0 ? "crecieron" : "bajaron"} ${fNum(Math.abs(d), 1)} mil millones.`);
+    }
+    ponerLectura("lec-reservas", frases);
+  }
+
+  function pintarPaneles(S) {
+    pintarMoneda(S);
+    pintarResumen(S);
+    const fHoy = S.tipo_cambio_fix.datos.at(-1)[0];
+
+    // Tasas de interés
+    const st = document.getElementById("stats-tasas"); st.textContent = "";
+    const obj = S.tasa_objetivo.datos;
+    let iCambio = obj.length - 1;
+    while (iCambio > 0 && obj[iCambio - 1][1] === obj.at(-1)[1]) iCambio--;
+    stat(st, {
+      label: "Tasa objetivo", valor: fNum(obj.at(-1)[1], 2) + " %",
+      delta: iCambio > 0 ? `${cambio(obj.at(-1)[1], obj[iCambio - 1][1], 2, " pp")} el ${fCorta(obj[iCambio][0])}` : "sin cambios",
+    });
+    const real = tasaReal(S);
+    stat(st, {
+      label: "Tasa real", titulo: "Tasa objetivo menos inflación anual",
+      valor: fNum(real.at(-1)[1], 2) + " pp",
+      delta: `${cambio(real.at(-1)[1], real.at(-2)[1], 2, " pp")} vs mes anterior`,
+    });
+    const c28 = S.cetes_28.datos;
+    stat(st, { label: "CETES 28 días", valor: fNum(c28.at(-1)[1], 2) + " %", delta: `${cambio(c28.at(-1)[1], c28.at(-2)[1], 2, " pp")} vs subasta anterior` });
+
+    lista("lista-tasas", "vs hace un mes",
+      [["tiie_fondeo", "TIIE de fondeo (1 día)", 2], ["tiie_28", "TIIE 28 días", 4], ["tiie_91", "TIIE 91 días", 4], ["tiie_182", "TIIE 182 días", 4]].map(([k, n, d]) => {
+        const s = S[k], u = s.datos.at(-1), p = valorEn(s.datos, t(u[0]) - 30 * DIA);
+        return { nombre: n, datos: s.datos, valor: fNum(u[1], d) + " %", cambio: cambio(u[1], p[1], 2, " pp"), titulo: `vs ${fCorta(p[0])}` };
+      }));
+
+    // Inflación y precios
+    const ia = S.inflacion_anual.datos;
+    document.getElementById("inf-mes").textContent = `· ${fMes(ia.at(-1)[0])}`;
+    const si = document.getElementById("stats-inflacion"); si.textContent = "";
+    [["inflacion_anual", "General"], ["inflacion_subyacente", "Subyacente"], ["inflacion_no_subyacente", "No subyacente"]].forEach(([k, n]) => {
+      const d = S[k].datos;
+      stat(si, { label: `${n}, anual`, valor: fNum(d.at(-1)[1], 2) + " %", delta: `${cambio(d.at(-1)[1], d.at(-2)[1], 2, " pp")} vs mes anterior` });
+    });
+    const im = S.inflacion_mensual.datos, inpc = S.inpc.datos, udi = S.udis.datos;
+    const udiHoy = valorEn(udi, t(fHoy)) || udi.at(-1), udiMes = valorEn(udi, t(udiHoy[0]) - 30 * DIA);
+    lista("lista-precios", "vs mes anterior", [
+      { nombre: "Inflación mensual", datos: im, valor: fNum(im.at(-1)[1], 2) + " %", cambio: cambio(im.at(-1)[1], im.at(-2)[1], 2, " pp"), titulo: "vs mes anterior" },
+      { nombre: "INPC (índice)", datos: inpc, valor: fNum(inpc.at(-1)[1], 3), cambio: cambio(inpc.at(-1)[1], inpc.at(-2)[1], 3), titulo: "vs mes anterior" },
+      { nombre: "Valor de la UDI (pesos)", datos: udi.filter((p) => p[0] <= udiHoy[0]), valor: fNum(udiHoy[1], 6), cambio: cambio(udiHoy[1], udiMes[1], 4), titulo: "vs hace un mes" },
+    ]);
+
+    // Reservas
+    const res = S.reservas.datos;
+    document.getElementById("res-valor").textContent = fNum(res.at(-1)[1] / 1000, 1) + " mmdd";
+    document.getElementById("res-delta").textContent =
+      `${cambio(res.at(-1)[1] / 1000, res.at(-2)[1] / 1000, 1, " mmdd")} vs ${fCorta(res.at(-2)[0])} · al ${fCorta(res.at(-1)[0])}`;
+
+    lecturaTasas(S);
+    lecturaCurva(S);
+    lecturaInflacion(S);
+    lecturaReservas(S);
+  }
+
+  // ---------- Fondo de la franja: guilloche de billete, muy tenue ----------
+  function pintarFondo() {
+    const c = document.getElementById("fondo");
+    if (!c) return;
+    const r = c.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+    const g = c.getContext("2d");
+    g.scale(dpr, dpr);
+    g.lineWidth = 1;
+    const rosetas = [{ cx: r.width * 0.86, cy: r.height * 0.18, s: 1 }, { cx: r.width * 0.05, cy: r.height * 1.02, s: 0.75 }];
+    rosetas.forEach((ro) => {
+      for (let k = 0; k < 34; k++) {
+        g.strokeStyle = `rgba(214, 190, 126, ${0.035 + (k % 3) * 0.012})`;
+        g.beginPath();
+        for (let a = 0; a <= Math.PI * 2 + 0.02; a += 0.012) {
+          const R = (150 + k * 4.2) * ro.s, rr = (56 + k * 1.3) * ro.s;
+          const x = ro.cx + (R - rr) * Math.cos(a) + rr * Math.cos(((R - rr) / rr) * a);
+          const y = ro.cy + (R - rr) * Math.sin(a) - rr * Math.sin(((R - rr) / rr) * a);
+          a ? g.lineTo(x, y) : g.moveTo(x, y);
+        }
+        g.stroke();
+      }
+    });
+  }
+
+  // ---------- Escalas y piezas comunes ----------
+  function escalaNice(min, max, n = 5) {
+    const paso0 = (max - min) / n || 1;
+    const mag = 10 ** Math.floor(Math.log10(paso0));
+    const paso = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((p) => p >= paso0);
+    const lo = Math.floor(min / paso) * paso, hi = Math.ceil(max / paso) * paso;
+    const ticks = [];
+    for (let v = lo; v <= hi + paso / 2; v += paso) ticks.push(+v.toFixed(10));
+    return { lo, hi, ticks, paso };
+  }
+
+  // Etiquetas finales: valor (y nombre si hay varias series). Si chocan, se separan
+  // y una línea guía une cada etiqueta con su punto; nunca se ocultan.
+  function etiquetasFinales(svg, finales, { decimales, sufijo, varias, yMin, yMax }) {
+    const cc = (v) => css(v, svg);
+    const alto = varias ? 30 : 16;
+    const orden = [...finales].sort((a, b) => a.y - b.y);
+    orden.forEach((f, i) => { f.ly = i ? Math.max(f.y, orden[i - 1].ly + alto) : f.y; });
+    const exceso = orden.length ? orden.at(-1).ly + (varias ? 18 : 4) - yMax : 0;
+    if (exceso > 0) orden.forEach((f) => { f.ly = Math.max(yMin, f.ly - exceso); });
+    for (let i = 1; i < orden.length; i++) orden[i].ly = Math.max(orden[i].ly, orden[i - 1].ly + alto);
+    // Si alguna etiqueta se movió, todas van en una misma columna con su línea guía.
+    const conGuia = orden.some((f) => Math.abs(f.ly - f.y) > 2);
+    orden.forEach((f) => {
+      const desv = conGuia;
+      const x = f.x + (desv ? 18 : 8);
+      if (desv) el("svg:path", { d: `M${f.x + 5},${f.y}L${f.x + 9},${f.y}L${x - 4},${f.ly}`, fill: "none", stroke: cc("--axis"), "stroke-width": 1 }, svg);
+      el("svg:text", { x, y: f.ly + 4, "font-size": 12.5, "font-weight": 600, fill: cc("--text-primary"), text: fNum(f.v, decimales) + sufijo }, svg);
+      if (varias) el("svg:text", { x, y: f.ly + 18, "font-size": 11, fill: cc("--text-secondary"), text: f.s.corto }, svg);
+    });
+  }
+
+  function tooltipEn(contenedor) { return el("div", { class: "tooltip", role: "status", hidden: "" }, contenedor); }
+  function colocar(tip, contenedor, W, xpx, ytop) {
+    tip.hidden = false;
+    const escala = contenedor.clientWidth / W;
+    const izq = xpx * escala + 14;
+    tip.style.left = (izq + tip.offsetWidth > contenedor.clientWidth ? Math.max(0, xpx * escala - tip.offsetWidth - 14) : izq) + "px";
+    tip.style.top = ytop * escala + "px";
+  }
+  function filaTip(tip, color, valor, etiqueta) {
+    const cc = (v) => css(v, tip);
+    const fila = el("div", { class: "fila" }, tip);
+    el("span", { class: "key", style: `background:${cc(color)}` }, fila);
+    el("b", { text: valor }, fila);
+    el("span", { text: etiqueta }, fila);
+  }
+
+  // ---------- Gráfica de líneas en el tiempo ----------
+  function lineas(contenedor, series, { decimales, sufijo = "", banda = null, alto = 300 }) {
+    const cc = (v) => css(v, contenedor);
+    contenedor.textContent = "";
+    const W = Math.max(contenedor.clientWidth, 280);
+    const H = alto;
+    const varias = series.length > 1;
+    const M = { t: 12, r: varias ? 104 : 76, b: 28, l: 44 };
+    const pw = W - M.l - M.r, ph = H - M.t - M.b;
+
+    const todas = series.flatMap((s) => s.datos);
+    const t0 = Math.min(...todas.map((p) => t(p[0]))), t1 = Math.max(...todas.map((p) => t(p[0])));
+    const vs = todas.map((p) => p[1]).concat(banda ? [banda.lo, banda.hi] : []);
+    const vmin = Math.min(...vs), vmax = Math.max(...vs);
+    const pad = (vmax - vmin) * 0.08 || 0.5;
+    const esc = escalaNice(vmin - pad, vmax + pad);
+    const X = (ms) => M.l + ((ms - t0) / (t1 - t0 || 1)) * pw;
+    const Y = (v) => M.t + ph - ((v - esc.lo) / (esc.hi - esc.lo)) * ph;
+
+    const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, role: "img", tabindex: "0",
+      "aria-label": series.map((s) => `${s.nombre}: último ${fNum(s.datos.at(-1)[1], decimales)}${sufijo}`).join("; ") + ". Usa las flechas para recorrer las fechas." }, contenedor);
+
+    if (banda) {
+      el("svg:rect", { x: M.l, y: Y(banda.hi), width: pw, height: Y(banda.lo) - Y(banda.hi), fill: cc("--banda") }, svg);
+    }
+
+    const dEje = esc.paso < 1 ? Math.max(0, -Math.floor(Math.log10(esc.paso) + 1e-9)) : 0;
+    for (const v of esc.ticks) {
+      el("svg:line", { x1: M.l, x2: M.l + pw, y1: Y(v), y2: Y(v), stroke: cc("--grid"), "stroke-width": 1, "shape-rendering": "crispEdges" }, svg);
+      el("svg:text", { x: M.l - 8, y: Y(v) + 4, "text-anchor": "end", "font-size": 11.5, fill: cc("--text-muted"), "font-variant-numeric": "tabular-nums", text: fNum(v, dEje) }, svg);
+    }
+
+    // Eje X: marcas por mes (o por semana en rangos cortos), adelgazadas según el ancho
+    const meses = [];
+    const d = new Date(t0); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + 1);
+    while (d.getTime() <= t1) { meses.push(d.getTime()); d.setUTCMonth(d.getUTCMonth() + 1); }
+    const porSemana = meses.length < 3;
+    let marcas = meses;
+    if (porSemana) { marcas = []; for (let ms = t0; ms <= t1; ms += 7 * DIA) marcas.push(ms); }
+    const cabe = Math.max(2, Math.floor(pw / 72));
+    const salto = Math.ceil(marcas.length / cabe);
+    const visibles = marcas.filter((_, i) => i % salto === 0);
+    visibles.forEach((ms, i) => {
+      const iso = new Date(ms).toISOString().slice(0, 10);
+      const txt = porSemana ? fFecha(iso, { day: "numeric", month: "short" })
+        : (i === 0 || new Date(ms).getUTCMonth() === 0) ? fFecha(iso, { month: "short", year: "numeric" }) : fFecha(iso, { month: "short" });
+      el("svg:text", { x: X(ms), y: H - 8, "text-anchor": "middle", "font-size": 11.5, fill: cc("--text-muted"), text: txt }, svg);
+    });
+    el("svg:line", { x1: M.l, x2: M.l + pw, y1: M.t + ph, y2: M.t + ph, stroke: cc("--axis"), "stroke-width": 1, "shape-rendering": "crispEdges" }, svg);
+
+    const finales = [];
+    series.forEach((s) => {
+      const camino = s.datos.map((p, i) => `${i ? "L" : "M"}${X(t(p[0])).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");
+      el("svg:path", { d: camino, fill: "none", stroke: cc(s.color), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      const [fu, vu] = s.datos.at(-1);
+      el("svg:circle", { cx: X(t(fu)), cy: Y(vu), r: 4, fill: cc(s.color), stroke: cc("--surface-1"), "stroke-width": 2 }, svg);
+      finales.push({ s, x: X(t(fu)), y: Y(vu), v: vu });
+    });
+    etiquetasFinales(svg, finales, { decimales, sufijo, varias, yMin: M.t, yMax: M.t + ph });
+
+    // Capa interactiva
+    const fechas = [...new Set(series.flatMap((s) => s.datos.map((p) => p[0])))].sort();
+    const guia = el("svg:line", { y1: M.t, y2: M.t + ph, stroke: cc("--axis"), "stroke-width": 1, visibility: "hidden" }, svg);
+    const puntos = series.map((s) => el("svg:circle", { r: 4, fill: cc(s.color), stroke: cc("--surface-1"), "stroke-width": 2, visibility: "hidden" }, svg));
+    const tip = tooltipEn(contenedor);
+    let idx = -1;
+
+    function mostrar(i) {
+      idx = Math.max(0, Math.min(fechas.length - 1, i));
+      const iso = fechas[idx], xpx = X(t(iso));
+      guia.setAttribute("x1", xpx); guia.setAttribute("x2", xpx); guia.setAttribute("visibility", "visible");
+      tip.textContent = "";
+      el("div", { class: "fecha", text: fFecha(iso, { weekday: "short", day: "numeric", month: "long", year: "numeric" }) }, tip);
+      series.forEach((s, k) => {
+        const p = valorEn(s.datos, t(iso));
+        if (!p) { puntos[k].setAttribute("visibility", "hidden"); return; }
+        puntos[k].setAttribute("cx", X(t(p[0]))); puntos[k].setAttribute("cy", Y(p[1])); puntos[k].setAttribute("visibility", "visible");
+        filaTip(tip, s.color, fNum(p[1], decimales) + sufijo, p[0] !== iso && s.mensual ? `${s.corto} (${fFecha(p[0], { month: "short", year: "numeric" })})` : s.corto);
+      });
+      colocar(tip, contenedor, W, xpx, M.t);
+    }
+    function ocultar() {
+      guia.setAttribute("visibility", "hidden");
+      puntos.forEach((p) => p.setAttribute("visibility", "hidden"));
+      tip.hidden = true;
+    }
+    function indiceCercano(ms) {
+      let lo = 0, hi = fechas.length - 1;
+      while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (t(fechas[mid]) < ms) lo = mid; else hi = mid; }
+      return Math.abs(t(fechas[lo]) - ms) <= Math.abs(t(fechas[hi]) - ms) ? lo : hi;
+    }
+    svg.addEventListener("pointermove", (e) => {
+      const r = svg.getBoundingClientRect();
+      const xs = ((e.clientX - r.left) / r.width) * W;
+      if (xs < M.l || xs > M.l + pw) { ocultar(); return; }
+      mostrar(indiceCercano(t0 + ((xs - M.l) / pw) * (t1 - t0)));
+    });
+    svg.addEventListener("pointerleave", ocultar);
+    svg.addEventListener("blur", ocultar);
+    svg.addEventListener("focus", () => mostrar(idx < 0 ? fechas.length - 1 : idx));
+    svg.addEventListener("keydown", (e) => {
+      const pasos = { ArrowLeft: -1, ArrowRight: 1, PageUp: -20, PageDown: 20, Home: -1e9, End: 1e9 };
+      if (e.key === "Escape") { ocultar(); return; }
+      if (!(e.key in pasos)) return;
+      e.preventDefault();
+      mostrar((idx < 0 ? fechas.length - 1 : idx) + pasos[e.key]);
+    });
+  }
+
+  // ---------- Curva de rendimientos (eje X por plazo) ----------
+  function curva(contenedor, plazos, series, alto = 260) {
+    const cc = (v) => css(v, contenedor);
+    contenedor.textContent = "";
+    const W = Math.max(contenedor.clientWidth, 280), H = alto;
+    const M = { t: 12, r: 104, b: 28, l: 44 };
+    const pw = W - M.l - M.r, ph = H - M.t - M.b;
+    const vs = series.flatMap((s) => s.puntos.map((p) => p.v));
+    const pad = (Math.max(...vs) - Math.min(...vs)) * 0.1 || 0.5;
+    const esc = escalaNice(Math.min(...vs) - pad, Math.max(...vs) + pad, 4);
+    // Eje proporcional a los días del plazo: así la pendiente de la curva es real.
+    const d0 = plazos[0].dias, d1 = plazos.at(-1).dias;
+    const X = (i) => M.l + ((plazos[i].dias - d0) / (d1 - d0)) * pw;
+    const Y = (v) => M.t + ph - ((v - esc.lo) / (esc.hi - esc.lo)) * ph;
+    const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, role: "img", tabindex: "0",
+      "aria-label": series.map((s) => `${s.nombre}: ` + s.puntos.map((p, i) => `${plazos[i].etiqueta} ${fNum(p.v, 2)} %`).join(", ")).join("; ") + ". Usa las flechas para recorrer los plazos." }, contenedor);
+    const dEje = esc.paso < 1 ? Math.max(0, -Math.floor(Math.log10(esc.paso) + 1e-9)) : 0;
+    for (const v of esc.ticks) {
+      el("svg:line", { x1: M.l, x2: M.l + pw, y1: Y(v), y2: Y(v), stroke: cc("--grid"), "stroke-width": 1, "shape-rendering": "crispEdges" }, svg);
+      el("svg:text", { x: M.l - 8, y: Y(v) + 4, "text-anchor": "end", "font-size": 11.5, fill: cc("--text-muted"), "font-variant-numeric": "tabular-nums", text: fNum(v, dEje) }, svg);
+    }
+    plazos.forEach((p, i) => el("svg:text", { x: X(i), y: H - 8, "text-anchor": "middle", "font-size": 11.5, fill: cc("--text-muted"), text: p.etiqueta }, svg));
+    el("svg:line", { x1: M.l, x2: M.l + pw, y1: M.t + ph, y2: M.t + ph, stroke: cc("--axis"), "stroke-width": 1, "shape-rendering": "crispEdges" }, svg);
+
+    const finales = [];
+    series.forEach((s) => {
+      el("svg:path", { d: s.puntos.map((p, i) => `${i ? "L" : "M"}${X(i)},${Y(p.v)}`).join(""), fill: "none", stroke: cc(s.color), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      s.puntos.forEach((p, i) => el("svg:circle", { cx: X(i), cy: Y(p.v), r: 4, fill: cc(s.color), stroke: cc("--surface-1"), "stroke-width": 2 }, svg));
+      finales.push({ s, x: X(plazos.length - 1), y: Y(s.puntos.at(-1).v), v: s.puntos.at(-1).v });
+    });
+    etiquetasFinales(svg, finales, { decimales: 2, sufijo: " %", varias: true, yMin: M.t, yMax: M.t + ph });
+
+    const guia = el("svg:line", { y1: M.t, y2: M.t + ph, stroke: cc("--axis"), "stroke-width": 1, visibility: "hidden" }, svg);
+    const tip = tooltipEn(contenedor);
+    let idx = -1;
+    function mostrar(i) {
+      idx = Math.max(0, Math.min(plazos.length - 1, i));
+      guia.setAttribute("x1", X(idx)); guia.setAttribute("x2", X(idx)); guia.setAttribute("visibility", "visible");
+      tip.textContent = "";
+      el("div", { class: "fecha", text: `CETES a ${plazos[idx].etiqueta.replace(" d", " días")}` }, tip);
+      series.forEach((s) => filaTip(tip, s.color, fNum(s.puntos[idx].v, 2) + " %", `${s.corto} (subasta del ${fCorta(s.puntos[idx].f)})`));
+      colocar(tip, contenedor, W, X(idx), M.t);
+    }
+    function ocultar() { guia.setAttribute("visibility", "hidden"); tip.hidden = true; }
+    svg.addEventListener("pointermove", (e) => {
+      const r = svg.getBoundingClientRect();
+      const xs = ((e.clientX - r.left) / r.width) * W;
+      if (xs < M.l - 20 || xs > M.l + pw + 20) { ocultar(); return; }
+      let cerca = 0;
+      plazos.forEach((_, i) => { if (Math.abs(X(i) - xs) < Math.abs(X(cerca) - xs)) cerca = i; });
+      mostrar(cerca);
+    });
+    svg.addEventListener("pointerleave", ocultar);
+    svg.addEventListener("blur", ocultar);
+    svg.addEventListener("focus", () => mostrar(idx < 0 ? 0 : idx));
+    svg.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { ocultar(); return; }
+      const paso = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      if (!paso) return;
+      e.preventDefault();
+      mostrar((idx < 0 ? 0 : idx) + paso);
+    });
+  }
+
+  function tabla(cont, columnas, filas) {
+    cont.textContent = "";
+    const tb = el("table", {}, cont);
+    const tr = el("tr", {}, el("thead", {}, tb));
+    columnas.forEach((c) => el("th", { scope: "col", text: c }, tr));
+    const body = el("tbody", {}, tb);
+    filas.forEach((f) => {
+      const r = el("tr", {}, body);
+      f.forEach((c) => el("td", { text: c }, r));
+    });
+  }
+
+  function leyenda(id, series) {
+    const ley = document.getElementById(id);
+    const cc = (v) => css(v, ley);
+    ley.textContent = "";
+    series.forEach((s) => {
+      const it = el("span", {}, ley);
+      el("span", { class: "key", style: `background:${cc(s.color)}` }, it);
+      it.append(s.nombre);
+    });
+  }
+
+  // ---------- Arranque ----------
+  let S = null, dias = 365;
+
+  function recortar(datos) {
+    if (!dias) return datos;
+    const limite = t(datos.at(-1)[0]) - dias * DIA;
+    return datos.filter((p) => t(p[0]) >= limite);
+  }
+  // Series mensuales: desde el mes que contiene el inicio del rango; con rangos muy
+  // cortos se muestran los últimos seis meses para que haya línea.
+  function recortarMensual(datos, desdeIso) {
+    const inicio = desdeIso.slice(0, 7) + "-01";
+    const r = datos.filter((p) => p[0] >= inicio);
+    return r.length >= 2 ? r : datos.slice(-6);
+  }
+
+  function pintarCurva() {
+    const claves = [["cetes_28", "28 d"], ["cetes_91", "91 d"], ["cetes_182", "182 d"], ["cetes_364", "364 d"]];
+    const plazos = claves.map(([, e]) => ({ etiqueta: e, dias: parseInt(e, 10) }));
+    const hoy = claves.map(([k]) => { const [f, v] = S[k].datos.at(-1); return { f, v }; });
+    const hace = claves.map(([k]) => { const u = S[k].datos.at(-1); const [f, v] = valorEn(S[k].datos, t(u[0]) - 365 * DIA); return { f, v }; });
+    const series = [
+      { nombre: "Hoy", corto: "Hoy", color: "--series-1", puntos: hoy },
+      { nombre: "Hace un año", corto: "Hace un año", color: "--deemph", puntos: hace },
+    ];
+    leyenda("l-curva", series);
+    curva(document.getElementById("g-curva"), plazos, series, 220);
+    tabla(document.getElementById("t-curva"), ["Plazo", "Hoy", "Subasta", "Hace un año", "Subasta"],
+      claves.map(([, e], i) => [e.replace(" d", " días"), fNum(hoy[i].v, 2) + " %", hoy[i].f, fNum(hace[i].v, 2) + " %", hace[i].f]));
+  }
+
+  function pintarGraficaMoneda() {
+    const m = MONEDAS.find((x) => x.clave === moneda), s = S[m.clave];
+    const datos = recortar(s.datos);
+    lineas(document.getElementById("g-fix"),
+      [{ nombre: `${m.etiqueta}, ${m.unidad}`, corto: m.codigo, color: "--series-1", datos }], { decimales: s.decimales, alto: 250 });
+    tabla(document.getElementById("t-fix"), ["Fecha", m.unidad.charAt(0).toUpperCase() + m.unidad.slice(1)], datos.map((p) => [p[0], fNum(p[1], s.decimales)]).reverse());
+  }
+
+  function pintarGraficas() {
+    pintarGraficaMoneda();
+    const fix = recortar(S.tipo_cambio_fix.datos);
+
+    const desde = fix[0][0];
+    const inf = [
+      { nombre: "General", corto: "General", color: "--series-1", mensual: true, datos: recortarMensual(S.inflacion_anual.datos, desde) },
+      { nombre: "Subyacente", corto: "Subyacente", color: "--series-2", mensual: true, datos: recortarMensual(S.inflacion_subyacente.datos, desde) },
+      { nombre: "No subyacente", corto: "No subyacente", color: "--series-3", mensual: true, datos: recortarMensual(S.inflacion_no_subyacente.datos, desde) },
+    ];
+    leyenda("l-inflacion", inf);
+    lineas(document.getElementById("g-inflacion"), inf, { decimales: 2, sufijo: " %", banda: { lo: 2, hi: 4 }, alto: 240 });
+    tabla(document.getElementById("t-inflacion"), ["Mes", "General", "Subyacente", "No subyacente"],
+      inf[0].datos.map((p, i) => [p[0].slice(0, 7), fNum(p[1], 2) + " %", fNum(inf[1].datos[i]?.[1], 2) + " %", fNum(inf[2].datos[i]?.[1], 2) + " %"]).reverse());
+
+    const obj = recortar(S.tasa_objetivo.datos);
+    const infT = recortarMensual(S.inflacion_anual.datos, obj[0][0]);
+    const tasas = [
+      { nombre: "Tasa objetivo", corto: "Tasa objetivo", color: "--series-1", datos: obj },
+      { nombre: "Inflación anual", corto: "Inflación", color: "--series-2", mensual: true, datos: infT },
+    ];
+    leyenda("l-tasas", tasas);
+    lineas(document.getElementById("g-tasas"), tasas, { decimales: 2, sufijo: " %", alto: 260 });
+    const real = tasaReal(S);
+    tabla(document.getElementById("t-tasas"), ["Mes", "Tasa objetivo (fin de mes)", "Inflación anual", "Tasa real"],
+      infT.map((p) => {
+        const r = real.find((x) => x[0] === p[0]);
+        return [p[0].slice(0, 7), r ? fNum(p[1] + r[1], 2) + " %" : "—", fNum(p[1], 2) + " %", r ? fNum(r[1], 2) + " pp" : "—"];
+      }).reverse());
+
+    // Reservas: semanales; con 30 días habría 4 puntos, así que el mínimo es de 90 días.
+    const resTodas = S.reservas.datos.map(([f, v]) => [f, v / 1000]);
+    let res = recortar(resTodas);
+    if (res.length < 6) res = resTodas.slice(-13);
+    lineas(document.getElementById("g-reservas"),
+      [{ nombre: "Reservas internacionales", corto: "Reservas", color: "--series-1", datos: res }], { decimales: 1, sufijo: "", alto: 230 });
+    tabla(document.getElementById("t-reservas"), ["Fecha", "Miles de millones de USD"], res.map((p) => [p[0], fNum(p[1], 1)]).reverse());
+  }
+
+  function pintarTodo() { pintarFondo(); pintarPaneles(S); pintarCurva(); pintarGraficas(); }
+
+  document.querySelectorAll(".segmentado button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(".segmentado button").forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+    dias = Number(b.dataset.dias);
+    pintarGraficas();
+  }));
+
+  let espera, anchoPrevio = window.innerWidth;
+  window.addEventListener("resize", () => {
+    clearTimeout(espera);
+    espera = setTimeout(() => { if (S && window.innerWidth !== anchoPrevio) { anchoPrevio = window.innerWidth; pintarTodo(); } }, 120);
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => S && pintarTodo());
+
+  fetch("datos.json", { cache: "no-cache" }).then((r) => r.json()).then((j) => {
+    S = j.series;
+    document.getElementById("actualizado").textContent =
+      "Indicadores oficiales del Banco de México · actualizado el " + new Intl.DateTimeFormat("es-MX", { dateStyle: "long", timeStyle: "short", timeZone: "America/Mexico_City" }).format(new Date(j.actualizado));
+    pintarTodo();
+    const desc = document.getElementById("descargas");
+    Object.entries(S).forEach(([clave, s]) => el("a", { href: `data/${clave}.csv`, download: "", text: s.nombre }, desc));
+  }).catch((e) => {
+    document.getElementById("fix-valor").textContent = "No se pudieron cargar los datos";
+    console.error(e);
+  });
+})();
+</script>
+</body>
+</html>

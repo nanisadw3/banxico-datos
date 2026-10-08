@@ -1,0 +1,47 @@
+name: Actualizar datos de Banxico
+
+on:
+  schedule:
+    # Banxico publica el FIX alrededor de las 12:00 hora del centro (18:00 UTC).
+    # Dos corridas en días hábiles: la segunda recoge datos que se publican tarde.
+    - cron: "45 19 * * 1-5"
+    - cron: "30 23 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar-datos
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Descargar indicadores
+        env:
+          BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
+        run: python scripts/actualizar.py
+
+      - name: Guardar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data docs/datos.json
+          if git diff --staged --quiet; then
+            echo "Sin datos nuevos."
+            exit 0
+          fi
+          fix=$(tail -n 1 docs/data/tipo_cambio_fix.csv)
+          git commit -m "datos: FIX ${fix#*,} (${fix%%,*})"
+          # Por si entró otro commit mientras corría la descarga.
+          git pull --rebase --autostash
+          git push
